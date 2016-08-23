@@ -1,0 +1,17 @@
+{
+  "name": "robomap",
+  "version": "1.0.0",
+  "description": "A twitter bot that replies to your location searches with static maps",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Andy Zeigert",
+  "license": "ISC",
+  "dependencies": {
+    "mapbox-geocoding": "^0.1.4",
+    "request": "^2.74.0",
+    "twit": "^2.2.4"
+  }
+}
