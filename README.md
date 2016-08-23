@@ -1,12 +1,12 @@
-Notes for making RoboMapper
+# Notes for making RoboMapper
 
-RoboMapper
+[RoboMapper](http://twitter.com/robomapper)
 
 A twitter bot.
 
 Tweet a location to RoboMapper and RoboMapper will tweet a static map image of that location back to you.
 
-1. Tweet @robomapper with a location like you would to see a map of
+1. Tweet @robomapper with a location you would like to see a map of
 
 2. Get a reply with an image of that location
 
