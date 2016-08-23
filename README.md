@@ -1,4 +1,4 @@
-# Notes for making RoboMapper
+# RoboMapper
 
 [RoboMapper](http://twitter.com/robomapper)
 
