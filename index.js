@@ -80,10 +80,10 @@ T.stream('user', {replies: 'all'})
 	function findLocation(locationQuery, msg){
 		// Query mapbox geocoding api to get lat/lon
 		geo.geocode('mapbox.places', locationQuery, function (err, geoData) {
-			if (err) throw err;
+			if (err) console.log(err);
 
 			// If the mapbox geocoding api couldn't find anything...
-			if (geoData.features.length === 0) {
+			if (geoData && geoData.features.length === 0) {
 
 				// Send a reply to the user with a sad face
 				T.post('statuses/update', {
