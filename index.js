@@ -21,6 +21,12 @@ var style = 'streets-v9'
 // Default for now. Could vary in the future?
 var zoom = 12;
 
+var lat, lon;
+
+var geoData;
+
+var msg;
+
 // Muh token
 var mapboxtoken = 'pk.eyJ1IjoiYWp6ZWlnZXJ0IiwiYSI6IldLdVhKN1UifQ.43CCALwNLBzVybtPFvcaJQ';
 
@@ -39,6 +45,9 @@ T.stream('user', {replies: 'all'})
 		console.log('Robomapper is now listening');
 	})
 	.on('message', function(msg){
+		// msg = msg;
+
+		// console.log(msg);
 
 		// If the @reply screen name is to robomapper...
 		if (msg.in_reply_to_screen_name === 'robomapper') {
@@ -51,17 +60,105 @@ T.stream('user', {replies: 'all'})
 			locationQuery = locationQuery.substring(username.length + 1);
 
 			// To do: create a fun easter egg function to return other stuff with the right string
+			// Ideas: Jimmy Hoffa, The Upside Down, Sesame Street, Hell, Loserville, Heaven, Null Island
+			if (locationQuery.toLowerCase().indexOf('null island') > -1 ) {
+				lat = 0;
+				lon = 0;
+				makeMapboxMap(msg, null, locationQuery);
+			} else {
+				findLocation(locationQuery, msg);
+			}
 
-			// Query mapbox geocoding api to get lat/lon
-			geo.geocode('mapbox.places', locationQuery, function (err, geoData) {
-				if (err) throw err;
 
-				// If the mapbox geocoding api couldn't find anything...
-				if (geoData.features.length === 0) {
+		}
+	});
 
-					// Send a reply to the user with a sad face
+	function findLocation(locationQuery, msg){
+		// Query mapbox geocoding api to get lat/lon
+		geo.geocode('mapbox.places', locationQuery, function (err, geoData) {
+			if (err) throw err;
+
+			// If the mapbox geocoding api couldn't find anything...
+			if (geoData.features.length === 0) {
+
+				// Send a reply to the user with a sad face
+				T.post('statuses/update', {
+					status: 'Sorry, @' + msg.user.screen_name + ', I couldn\'t find a map of' + locationQuery + '. :-(',
+				},
+				function(err, data, response) {
+					if (err){
+						console.log('Error!');
+						console.log(err);
+					}
+					else {
+						console.log('Robomapper couldn\'t find that location.');
+					}
+				});
+
+			// If the api finds something...
+			} else if (geoData.features.length >= 1) {
+
+				console.log('Robomapper found that location.')
+
+				// Use the lat/lon of the first result
+				lat = geoData.features[0].center[1];
+				lon = geoData.features[0].center[0];
+
+				makeMapboxMap(msg, geoData, locationQuery);
+			}
+
+		});
+	}
+
+	function makeMapboxMap(msg, geoData, locationQuery){
+		// Now use the static image api to create the image
+		var imageRequest = mapboxUrl +
+			'styles/v1/' +
+			mapbox_username + '/' +
+			style +
+			'/static/' +
+			lon + ',' +
+			lat + ',' +
+			zoom + '/' +
+			width + 'x' + height + '@2x' +
+			'?access_token=' + mapboxtoken;
+		// Send the request
+		request({
+			url: imageRequest,
+			// Prevents Request from converting response to string
+			encoding: null
+
+		}, function(err, response, body){
+			sendTweetWithImage(err, response, body, msg, geoData, locationQuery);
+		});
+	}
+
+	function sendTweetWithImage(err, response, body, msg, geoData, locationQuery){
+		if (err) throw err;
+
+		// Get the string value of the body in base64
+		var b64content = body.toString('base64');
+
+		// If there's no error...
+		if (!err) {
+
+			console.log('Robomapper made a map.')
+
+			// Upload the image using the twitter media api
+			T.post('media/upload', { media_data: b64content }, function (err, data, response) {
+				if (err){
+					console.log('ERROR');
+					console.log(err);
+				}
+				else {
+					console.log('Robomapper uploaded the map image.');
+					var place = geoData != null ? geoData.features[0].place_name : locationQuery;
+					// console.log(place)
+
+					// Then create an actual tweet reply to the cool person
 					T.post('statuses/update', {
-						status: 'Sorry, @' + msg.user.screen_name + ', I couldn\'t find a map of' + locationQuery + '. :-(',
+						status: 'Hello, @' + msg.user.screen_name + ', I made this map of ' + place + ' for you.',
+						media_ids: new Array(data.media_id_string)
 					},
 					function(err, data, response) {
 						if (err){
@@ -69,82 +166,14 @@ T.stream('user', {replies: 'all'})
 							console.log(err);
 						}
 						else {
-							console.log('Robomapper couldn\'t find that location.');
+							console.log('Robomapper posted a tweet with the image.');
 						}
-					});
-
-				// If the api finds something...
-				} else if (geoData.features.length >= 1) {
-
-					console.log('Robomapper found that location.')
-
-					// Use the lat/lon of the first result
-					var lat = geoData.features[0].center[1];
-					var lon = geoData.features[0].center[0];
-
-					// Now use the static image api to create the image
-					var imageRequest = mapboxUrl +
-						'styles/v1/' +
-						mapbox_username + '/' +
-						style +
-						'/static/' +
-						lon + ',' +
-						lat + ',' +
-						zoom + '/' +
-						width + 'x' + height + '@2x' +
-						'?access_token=' + mapboxtoken;
-
-					// Send the request
-					request({
-					    url: imageRequest,
-					    // Prevents Request from converting response to string
-					    encoding: null
-
-					}, function (err, response, body) {
-						if (err) throw err;
-
-						// Get the string value of the body in base64
-						var b64content = body.toString('base64');
-
-						// If there's no error...
-						if (!err) {
-
-							console.log('Robomapper made a map.')
-
-							// Upload the image using the twitter media api
-							T.post('media/upload', { media_data: b64content }, function (err, data, response) {
-								if (err){
-									console.log('ERROR');
-									console.log(err);
-								}
-								else {
-									console.log('Robomapper uploaded the map image.');
-
-									// Then create an actual tweet reply to the cool person
-									T.post('statuses/update', {
-										status: 'Hello, @' + msg.user.screen_name + ', I made this map of ' + geoData.features[0].place_name + ' for you.',
-										media_ids: new Array(data.media_id_string)
-									},
-									function(err, data, response) {
-										if (err){
-											console.log('Error!');
-											console.log(err);
-										}
-										else {
-											console.log('Robomapper posted a tweet with the image.');
-										}
-									})
-								}
-							})
-
-						}
-
 					})
 				}
-
-			});
+			})
 
 		}
-	});
+
+	}
 
 // The end
