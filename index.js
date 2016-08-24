@@ -66,6 +66,9 @@ T.stream('user', {replies: 'all'})
 				lat = 0;
 				lon = 0;
 				makeMapboxMap(msg, null, locationQuery);
+			} else if (locationQuery.toLowerCase().indexOf('hell') > -1 ) {
+				locationQuery = 'New Jersey';
+				makeMapboxMap(msg, null, locationQuery);
 			} else {
 				findLocation(locationQuery, msg);
 			}
