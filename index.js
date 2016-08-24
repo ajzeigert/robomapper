@@ -61,7 +61,7 @@ T.stream('user', {replies: 'all'})
 			locationQuery = locationQuery.substring(username.length + 1);
 
 			// To do: create a fun easter egg function to return other stuff with the right string
-			// Ideas: Jimmy Hoffa, The Upside Down, Sesame Street, Hell, Loserville, Heaven, Null Island
+			// Ideas: Jimmy Hoffa, The Upside Down, Sesame Street, Shit Town, Star maps? Baseball fields?
 			if (locationQuery.toLowerCase().indexOf('null island') > -1 ) {
 				lat = 0;
 				lon = 0;
@@ -69,6 +69,20 @@ T.stream('user', {replies: 'all'})
 			} else if (locationQuery.toLowerCase().indexOf('hell') > -1 ) {
 				locationQuery = 'New Jersey';
 				findLocation(locationQuery, msg);
+			} else if (locationQuery.toLowerCase().indexOf('mordor') > -1 ) {
+				locationQuery = 'Tongariro National Park, New Zealand';
+				findLocation(locationQuery, msg);
+			} else if (locationQuery.toLowerCase().indexOf('loserville') > -1 ) {
+				locationQuery = 'Trump Tower, New York City';
+				findLocation(locationQuery, msg);
+			} else if (locationQuery.toLowerCase().indexOf('heaven') > -1 ) {
+				lat = 41.915278;
+				lon = -86.593333;
+				makeMapboxMap(msg, null, locationQuery);
+			} else if (locationQuery.toLowerCase().indexOf('mount doom') > -1 ) {
+				lat = -39.156833;
+				lon = 175.632167;
+				makeMapboxMap(msg, null, locationQuery);
 			} else {
 				findLocation(locationQuery, msg);
 			}
