@@ -4,7 +4,8 @@ var fs = require('fs'),
     Twit = require('twit'),
     config = require(path.join(__dirname, 'config.js')),
 	https = require('https'),
-	geo = require('mapbox-geocoding');
+	geo = require('mapbox-geocoding'),
+	geoViewport = require('geo-viewport');
 
 // Create a new instance of Twit
 var T = new Twit(config);
@@ -100,9 +101,13 @@ T.stream('user', {replies: 'all'})
 
 				console.log('Robomapper found that location.')
 
+				// Convert response bounding box to zoom and center
+				var box = geoData.features[0].bbox;
+				var viewport = geoViewport.viewport(box, [512,512]);
 				// Use the lat/lon of the first result
-				lat = geoData.features[0].center[1];
-				lon = geoData.features[0].center[0];
+				lat = viewport.center[1];
+				lon = viewport.center[0];
+				zoom = viewport.zoom;
 
 				makeMapboxMap(msg, geoData, locationQuery);
 			}
